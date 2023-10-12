@@ -1,0 +1,31 @@
+import os
+import numpy as np
+from common.config import Config
+
+
+class Normal3dImage:
+
+    def dicom_normalization(self, imgs):
+        # print('정규화 전: ', imgs.min(), '~', imgs.max())
+        abs_imgs = abs(imgs[np.arange(imgs.shape[0])])
+        normal_imgs = ((abs_imgs - abs_imgs.min()) / (abs_imgs.max() - abs_imgs.min())) * 255.
+        # print('정규화 후: ', normal_imgs.min(), '~', normal_imgs.max())
+        return (normal_imgs)
+
+    def normal_3d_image(self, img_type):
+        pixel_size = Config.get_pixel_szie()  # → IMAGE WIDTH & HEIGHT
+        dim = Config.get_dim()  # → IMAGE DIMENSION
+
+        print('■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■')
+        print('■■ Normalization: Start')
+        np_imgs = np.load('./preprocess/output/{}/{}_{}.npy'.format(Config.img_shape, img_type, Config.img_shape))
+        result = self.dicom_normalization(np_imgs)
+        normal_imgs = np.array(result, dtype=np.float32)
+
+        # 3D Numpy 이미지 저장하기
+        output_path = './preprocess/output/{}'.format(Config.img_shape)
+        if not os.path.isdir(output_path):
+            os.makedirs(output_path)
+
+        np.save('{}/{}_{}_normal'.format(output_path, img_type, Config.img_shape), normal_imgs)
+        print('>> [MESSAGE] SUCCESS: {} → 정규화 된 3D이미지(Numpy) 생성'.format(img_type))
